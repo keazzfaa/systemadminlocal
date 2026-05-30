@@ -29,7 +29,7 @@ function Shell({ children }) {
       <Navbar />
       <main className="page-content">{children}</main>
     </div>
-  );
+  );P
 }
 
 export default function App() {
