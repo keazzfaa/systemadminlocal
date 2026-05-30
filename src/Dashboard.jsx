@@ -1,5 +1,133 @@
-import React from "react";import{DollarSign,Wallet,CreditCard,TrendingUp,Users,ShieldAlert,RefreshCw}from"lucide-react";import{BarChart,Bar,XAxis,Tooltip,ResponsiveContainer}from"recharts";
-const data=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((d,i)=>({d,v:[42,66,52,92,72,58,82][i]}));
-export default function Dashboard(){return <><Header title="Global Executive Overview" sub="Real-time performance metrics for 24 Oct 2023"/><section className="stat-grid">{[['TOTAL SALES','$432,900','+12.4%',TrendingUp],['CASH IN','$298,450','+8.2%',Wallet],['CASH OUT','$124,200','-2.4%',CreditCard],['NET PROFIT','$174,250','+18.1%',DollarSign],['ACTIVE STAFF','124 / 150','Peak Time',Users]].map(([t,v,b,I],i)=><div className="card stat-card" key={t}><div className="stat-top"><span className="icon-badge"><I size={22}/></span><span className={`badge ${i==2?'red':'green'}`}>{b}</span></div><h3>{t}</h3><strong>{v}</strong></div>)}</section><section className="grid-2"><div className="card"><div className="card-title"><h2>Revenue Analytics</h2><p><span className="dot navy-dot"/> Current Period <span className="dot"/> Previous Period</p></div><ResponsiveContainer width="100%" height={310}><BarChart data={data}><XAxis dataKey="d"/><Tooltip/><Bar dataKey="v" radius={[30,30,0,0]}/></BarChart></ResponsiveContainer></div><div className="card"><div className="card-title"><h2>System Alerts</h2><span className="badge red">Critical</span></div><div className="alert-list"><Item red title="Unauthorized Login Attempt" text="IP: 192.168.1.45 • 2 mins ago"/><Item orange title="Large Transaction Alert" text="Cash out of $15,000 detected • 45 mins ago"/><Item title="Backup Success" text="Cloud sync completed • 2 hours ago"/></div></div></section><section className="grid-bottom"><div className="card table-card"><div className="table-head"><h2>Top Performing Employees</h2><b>View Leaderboard</b></div><table><thead><tr><th>Employee</th><th>Sales Vol.</th><th>Efficiency</th><th>Status</th></tr></thead><tbody>{['Elena Sorova','James Kim','Maya Brooks'].map((n,i)=><tr key={n}><td><strong>{n}</strong><br/><small>{['Regional Manager','Sales Director','Logistics Lead'][i]}</small></td><td><strong>${[54200,48900,32150][i].toLocaleString()}</strong></td><td><div className="progress"><span style={{width:[82,78,65][i]+'%'}}/></div></td><td><span className="badge green">Active</span></td></tr>)}</tbody></table></div><div className="card"><div className="card-title"><h2>Recent Activity</h2><RefreshCw size={18}/></div><div className="activity-list">{['Inventory Audit Completed','New Staff Onboarded','API Key Rotated','Server Maintenance'].map(x=><Item key={x} title={x} text="System activity logged successfully"/> )}</div></div></section></>}
-function Header(p){return <div className="page-header"><div className="page-title"><h1>{p.title}</h1><p>{p.sub}</p></div><button className="primary-btn">Export PDF</button></div>}
-function Item({title,text,red,orange}){return <div className={`alert-item ${red?'red':orange?'orange':''}`}><ShieldAlert size={22}/><div><strong>{title}</strong><p>{text}</p></div></div>}
+import React from "react";
+import { DollarSign, Wallet, CreditCard, TrendingUp, Package, Users, ArrowUpRight, Activity } from "lucide-react";
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useApp } from "./context.jsx";
+import { useNavigate } from "react-router-dom";
+
+const FMT = v => "Rp " + (v||0).toLocaleString("id-ID");
+
+export default function Dashboard() {
+  const { itemsIn, itemsOut, cashflow, customers, suppliers, auditLog, session } = useApp();
+  const nav = useNavigate();
+
+  const totalIn   = itemsIn.reduce((s,x)=>s+x.total,0);
+  const totalOut  = itemsOut.reduce((s,x)=>s+x.total,0);
+  const totalMasuk  = cashflow.filter(x=>x.jenis==="masuk").reduce((s,x)=>s+x.jumlah,0);
+  const totalKeluar = cashflow.filter(x=>x.jenis==="keluar").reduce((s,x)=>s+x.jumlah,0);
+  const netProfit   = totalMasuk - totalKeluar;
+
+  const barData = ["Sen","Sel","Rab","Kam","Jum","Sab","Min"].map((d,i)=>({
+    d, masuk:[42,66,52,92,72,58,82][i]*1000000, keluar:[22,30,28,45,35,20,30][i]*1000000
+  }));
+
+  const trendData = ["Jan","Feb","Mar","Apr","Mei","Jun"].map((m,i)=>({
+    m, v:[145,188,162,240,198,275][i]
+  }));
+
+  const recentLog = auditLog.slice(0,5);
+
+  return (
+    <>
+      <div className="page-header">
+        <div className="page-title">
+          <h1>Selamat datang, {session?.name?.split(" ")[0]} 👋</h1>
+          <p>Ringkasan operasional per {new Date().toLocaleDateString("id-ID",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
+        </div>
+      </div>
+
+      <section className="stat-grid">
+        {[
+          ["Total Penjualan", FMT(totalOut),    "+12.4%", TrendingUp,  "green", "/barang-keluar"],
+          ["Cash Masuk",      FMT(totalMasuk),  "+8.2%",  Wallet,      "green", "/cashflow"],
+          ["Cash Keluar",     FMT(totalKeluar), "-2.4%",  CreditCard,  "red",   "/cashflow"],
+          ["Net Profit",      FMT(netProfit),   "+18.1%", DollarSign,  "green", "/cashflow"],
+          ["Total Supplier",  suppliers.length+" mitra",  "Aktif",Package,"blue","/supplier"],
+          ["Total Customer",  customers.length+" klien",  "Aktif",Users,"blue","/customer"],
+        ].map(([t,v,b,I,color,link])=>(
+          <div className="card stat-card" key={t} onClick={()=>nav(link)} style={{cursor:"pointer"}}>
+            <div className="stat-top">
+              <span className="icon-badge"><I size={20}/></span>
+              <span className={`badge badge-${color}`}>{b}</span>
+            </div>
+            <h3>{t}</h3>
+            <strong>{v}</strong>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid-2">
+        <div className="card">
+          <div className="card-title">
+            <h2>Grafik Transaksi Mingguan</h2>
+            <span className="badge badge-blue">7 Hari</span>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={barData}>
+              <XAxis dataKey="d"/>
+              <Tooltip formatter={v=>"Rp "+v.toLocaleString("id-ID")}/>
+              <Bar dataKey="masuk"  name="Masuk"  radius={[6,6,0,0]} fill="var(--navy)"/>
+              <Bar dataKey="keluar" name="Keluar" radius={[6,6,0,0]} fill="var(--orange)"/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="card">
+          <div className="card-title">
+            <h2>Trend Penjualan</h2>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={trendData}>
+              <XAxis dataKey="m"/>
+              <Tooltip/>
+              <Line type="monotone" dataKey="v" strokeWidth={3} stroke="var(--navy)" dot={{r:5}}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <section className="grid-bottom" style={{marginTop:24}}>
+        <div className="card table-card">
+          <div className="table-head">
+            <h2>Transaksi Barang Keluar Terbaru</h2>
+            <button className="secondary-btn small" onClick={()=>nav("/barang-keluar")}>
+              Lihat Semua <ArrowUpRight size={15}/>
+            </button>
+          </div>
+          <table>
+            <thead><tr><th>Tanggal</th><th>Kode</th><th>Nama Barang</th><th>Qty</th><th>Total</th></tr></thead>
+            <tbody>
+              {itemsOut.slice(0,4).map(r=>(
+                <tr key={r.id}>
+                  <td>{r.tanggal}</td>
+                  <td><span className="badge badge-blue">{r.kode}</span></td>
+                  <td><strong>{r.nama}</strong></td>
+                  <td>{r.qty} {r.satuan}</td>
+                  <td><strong>{FMT(r.total)}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="card">
+          <div className="card-title">
+            <h2>Aktivitas Terbaru</h2>
+            <Activity size={18} style={{color:"var(--navy)"}}/>
+          </div>
+          <div className="activity-list">
+            {recentLog.map(l=>(
+              <div className="activity-item" key={l.id}>
+                <div className={`act-dot act-${l.type}`}/>
+                <div>
+                  <strong>{l.action}</strong>
+                  <p style={{margin:"2px 0 0",fontSize:13,color:"var(--muted)"}}>{l.detail}</p>
+                  <small style={{color:"var(--muted)"}}>{l.ts} · {l.user}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}

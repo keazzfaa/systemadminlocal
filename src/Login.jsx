@@ -1,2 +1,99 @@
-import React from "react";import{useNavigate}from"react-router-dom";import{Mail,Lock,EyeOff,ArrowRight,Network,ShieldCheck}from"lucide-react";
-export default function Login(){const nav=useNavigate();return <section className="login-page"><div className="login-left"><div className="login-brand"><div className="login-logo"><Network/></div><strong>Neural Ops</strong></div><div className="login-copy"><h1>Powering the next generation of enterprise intelligence.</h1><p>Secure, scalable, and sophisticated management for elite global operations. Access your centralized neural dashboard.</p></div><div className="login-preview"><div className="preview-grid">{Array.from({length:9}).map((_,i)=><span key={i}/>)}</div></div></div><div className="login-right"><div className="login-card"><h2>Sign In to Workspace</h2><p>Enter your credentials to access your secure environment.</p><form onSubmit={e=>e.preventDefault()}><label>Email Address</label><div className="input-group"><Mail size={18}/><input placeholder="name@company.com"/></div><div className="label-row"><label>Password</label><a>Forgot password?</a></div><div className="input-group"><Lock size={18}/><input type="password" placeholder="••••••••"/><EyeOff size={18}/></div><div className="remember-row"><span className="radio"/><p>Remember this device</p></div><button className="primary-btn full" type="button" onClick={()=>nav('/dashboard')}>Sign In to Workspace <ArrowRight size={20}/></button></form><div className="login-divider"/><p className="login-help">Don't have an account? <a>Contact your administrator</a></p><div className="encryption"><ShieldCheck size={14}/>AES-256 Enterprise Encryption</div></div><div className="login-links"><a>Privacy Policy</a><a>Terms of Service</a><a>Security Standards</a></div></div></section>}
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Mail, Lock, EyeOff, Eye, ArrowRight, Network, ShieldCheck, AlertCircle } from "lucide-react";
+import { useApp } from "./context.jsx";
+
+export default function Login() {
+  const { login } = useApp();
+  const nav = useNavigate();
+  const [email, setEmail] = useState("admin@neuralops.id");
+  const [pass, setPass] = useState("admin123");
+  const [show, setShow] = useState(false);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const DEMOS = [
+    { label:"Admin",   email:"admin@neuralops.id",   pass:"admin123"   },
+    { label:"Manager", email:"marcus@neuralops.id",  pass:"manager123" },
+    { label:"Staff",   email:"sari@neuralops.id",    pass:"staff123"   },
+    { label:"Viewer",  email:"viewer@neuralops.id",  pass:"viewer123"  },
+  ];
+
+  const submit = () => {
+    setErr("");
+    setLoading(true);
+    setTimeout(() => {
+      const ok = login(email.trim(), pass);
+      if (ok) nav("/dashboard");
+      else setErr("Email atau password salah.");
+      setLoading(false);
+    }, 600);
+  };
+
+  return (
+    <section className="login-page">
+      <div className="login-left">
+        <div className="login-brand">
+          <div className="login-logo"><Network size={28}/></div>
+          <strong>Neural Ops</strong>
+        </div>
+        <div className="login-copy">
+          <h1>Sistem Manajemen Operasional Terpadu</h1>
+          <p>Kelola inventaris, keuangan, supplier, dan pelanggan dalam satu platform terintegrasi yang aman.</p>
+        </div>
+        <div className="feature-pills">
+          {["Multi Role","Audit Log","Barang Masuk/Keluar","Cash Flow","Export Excel","Dark Mode"].map(f => (
+            <span className="pill-feature" key={f}>✓ {f}</span>
+          ))}
+        </div>
+        <div className="login-preview">
+          <div className="preview-grid">{Array.from({length:9}).map((_,i)=><span key={i}/>)}</div>
+        </div>
+      </div>
+
+      <div className="login-right">
+        <div className="login-card">
+          <h2>Masuk ke Workspace</h2>
+          <p>Masukkan kredensial Anda untuk mengakses sistem</p>
+
+          <div className="demo-creds">
+            <p>Demo akun:</p>
+            <div className="demo-grid">
+              {DEMOS.map(d => (
+                <button key={d.label} className="demo-btn" onClick={() => { setEmail(d.email); setPass(d.pass); }}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {err && <div className="alert-error"><AlertCircle size={16}/>{err}</div>}
+
+          <label>Email</label>
+          <div className="input-group">
+            <Mail size={17}/>
+            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@perusahaan.com"/>
+          </div>
+
+          <div className="label-row">
+            <label>Password</label>
+          </div>
+          <div className="input-group">
+            <Lock size={17}/>
+            <input type={show?"text":"password"} value={pass} onChange={e=>setPass(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&submit()} placeholder="••••••••"/>
+            <button style={{background:"none",border:0,cursor:"pointer",color:"var(--muted)"}} onClick={()=>setShow(s=>!s)}>
+              {show?<Eye size={17}/>:<EyeOff size={17}/>}
+            </button>
+          </div>
+
+          <button className="primary-btn full" onClick={submit} disabled={loading}>
+            {loading ? "Memproses..." : <><span>Masuk</span><ArrowRight size={18}/></>}
+          </button>
+
+          <div className="encryption"><ShieldCheck size={14}/>AES-256 Enterprise Encryption</div>
+        </div>
+      </div>
+    </section>
+  );
+}

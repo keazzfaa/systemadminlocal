@@ -1,5 +1,82 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, BarChart3, ShieldCheck, Activity, LogOut, Network } from "lucide-react";
-const links=[['/dashboard','Dashboard',LayoutDashboard],['/inventory','Inventory',Package],['/new-sale','New Sale',ShoppingCart],['/reports','Reports',BarChart3],['/security','Security',ShieldCheck],['/operations','Operations',Activity]];
-export default function Navbar(){return <aside className="sidebar"><div className="brand"><div className="brand-icon"><Network size={22}/></div><div><h2>Neural Ops</h2><p>Enterprise Suite</p></div></div><nav className="nav-links">{links.map(([to,label,Icon])=><NavLink key={to} to={to} className={({isActive})=>isActive?'nav-item active':'nav-item'}><Icon size={19}/><span>{label}</span></NavLink>)}</nav><NavLink to="/login" className="nav-item logout"><LogOut size={19}/><span>Logout</span></NavLink></aside>}
+import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard, PackageCheck, PackageMinus, Truck, Users, Wallet,
+  BarChart3, ClipboardList, ShieldCheck, Network, LogOut, Moon, Sun,
+  Menu, X, ChevronDown
+} from "lucide-react";
+import { useApp } from "./context.jsx";
+
+const LINKS = [
+  { to:"/dashboard",     label:"Dashboard",     icon:LayoutDashboard, page:"dashboard"  },
+  { to:"/barang-masuk",  label:"Barang Masuk",  icon:PackageCheck,    page:"inventory"  },
+  { to:"/barang-keluar", label:"Barang Keluar", icon:PackageMinus,    page:"inventory"  },
+  { to:"/supplier",      label:"Supplier",      icon:Truck,           page:"supplier"   },
+  { to:"/customer",      label:"Customer",      icon:Users,           page:"customer"   },
+  { to:"/cashflow",      label:"Cash Flow",     icon:Wallet,          page:"cashflow"   },
+  { to:"/reports",       label:"Laporan",       icon:BarChart3,       page:"reports"    },
+  { to:"/audit",         label:"Audit Log",     icon:ClipboardList,   page:"all"        },
+  { to:"/users",         label:"User & Role",   icon:ShieldCheck,     page:"all"        },
+];
+
+const ROLE_COLOR = { admin:"badge-red", manager:"badge-navy", staff:"badge-green", viewer:"badge-muted" };
+
+export default function Navbar() {
+  const { session, logout, darkMode, toggleDark, hasPerm, ROLES } = useApp();
+  const [open, setOpen] = useState(false);
+  const nav = useNavigate();
+
+  const visible = LINKS.filter(l => l.page === "all" ? session?.role === "admin" : hasPerm(l.page));
+
+  const doLogout = () => { logout(); nav("/login"); };
+
+  return (
+    <>
+      <button className="hamburger" onClick={() => setOpen(o => !o)}>
+        {open ? <X size={22}/> : <Menu size={22}/>}
+      </button>
+
+      <aside className={`sidebar${open ? " open" : ""}`}>
+        <div className="brand">
+          <div className="brand-icon"><Network size={20}/></div>
+          <div>
+            <h2>Neural Ops</h2>
+            <p>Enterprise Suite</p>
+          </div>
+        </div>
+
+        <div className="user-chip">
+          <div className="avatar">{session?.avatar || "??"}</div>
+          <div className="user-info">
+            <strong>{session?.name}</strong>
+            <span className={`badge ${ROLE_COLOR[session?.role]}`}>
+              {ROLES[session?.role]?.label}
+            </span>
+          </div>
+        </div>
+
+        <nav className="nav-links">
+          {visible.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} onClick={() => setOpen(false)}
+              className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+              <Icon size={18}/>
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <button className="nav-item dark-toggle" onClick={toggleDark}>
+            {darkMode ? <Sun size={18}/> : <Moon size={18}/>}
+            <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+          </button>
+          <button className="nav-item logout" onClick={doLogout}>
+            <LogOut size={18}/><span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {open && <div className="sidebar-overlay" onClick={() => setOpen(false)}/>}
+    </>
+  );
+}
