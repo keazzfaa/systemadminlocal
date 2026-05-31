@@ -32,9 +32,11 @@ export default function Navbar() {
 
   return (
     <>
-      <button className="hamburger" onClick={() => setOpen(o => !o)}>
-        {open ? <X size={22}/> : <Menu size={22}/>}
-      </button>
+   {!open && (
+  <button className="hamburger" onClick={() => setOpen(true)}>
+    <Menu size={22}/>
+  </button>
+)}
 
       <aside className={`sidebar${open ? " open" : ""}`}>
         <div className="brand">
