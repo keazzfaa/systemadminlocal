@@ -16,7 +16,6 @@ export default function Login() {
     { label:"Admin",   email:"admin@neuralops.id",   pass:"admin123"   },
     { label:"Manager", email:"marcus@neuralops.id",  pass:"manager123" },
     { label:"Staff",   email:"sari@neuralops.id",    pass:"staff123"   },
-    { label:"Viewer",  email:"viewer@neuralops.id",  pass:"viewer123"  },
   ];
 
   const submit = () => {

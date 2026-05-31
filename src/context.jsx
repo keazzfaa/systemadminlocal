@@ -6,14 +6,12 @@ const ROLES = {
   admin:   { label: "Administrator", color: "red",    perms: ["all"] },
   manager: { label: "Manager",       color: "navy",   perms: ["dashboard","inventory","cashflow","reports","supplier","customer"] },
   staff:   { label: "Staff",         color: "green",  perms: ["dashboard","inventory","sales"] },
-  viewer:  { label: "Viewer",        color: "muted",  perms: ["dashboard","reports"] },
 };
 
 const SEED_USERS = [
   { id:1, name:"Super Admin",   email:"admin@neuralops.id",   role:"admin",   avatar:"SA", password:"admin123"   },
   { id:2, name:"Marcus Tan",    email:"marcus@neuralops.id",  role:"manager", avatar:"MT", password:"manager123" },
   { id:3, name:"Sari Dewi",     email:"sari@neuralops.id",    role:"staff",   avatar:"SD", password:"staff123"   },
-  { id:4, name:"Viewer Guest",  email:"viewer@neuralops.id",  role:"viewer",  avatar:"VG", password:"viewer123"  },
 ];
 
 const SEED_SUPPLIERS = [

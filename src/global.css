@@ -196,7 +196,7 @@ a { text-decoration: none; color: inherit; }
 .card.navy h2, .card.navy p { color: white; }
 
 /* ─── STAT GRID ───────────────────────────────── */
-.stat-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 16px; margin-bottom: 20px; }
+.stat-grid { display: grid; grid-template-columns: repeat(3,2fr); gap: 10px; margin-bottom: 20px; }
 .stat-card { min-height: 140px; }
 .stat-top, .card-title, .table-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .card-title, .table-head { margin-bottom: 16px; }
