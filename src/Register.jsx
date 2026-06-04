@@ -73,15 +73,22 @@ export default function Register() {
         </div>
 
         <div className="register-info-cards">
-          {Object.entries(ROLES).map(([key, {label, perms}]) => (
-            <div className={`register-role-card ${role === key ? "active" : ""}`} key={key} onClick={() => setRole(key)}>
-              <div className="role-card-head">
-                <span className={`badge badge-${key === "owner" ? "red" : key === "admin" ? "navy" : "green"}`}>{label}</span>
-                {role === key && <CheckCircle2 size={16} style={{color:"white"}}/>}
-              </div>
-              <p>{perms.includes("all") ? "Akses penuh ke semua fitur" : `Akses: ${perms.slice(0,3).join(", ")}${perms.length > 3 ? "..." : ""}`}</p>
+          <div className="register-role-card active">
+            <div className="role-card-head">
+              <span className="badge badge-green">
+                {ROLES.sales.label}
+              </span>
+
+              <CheckCircle2
+                size={16}
+                style={{ color: "white" }}
+              />
             </div>
-          ))}
+
+            <p>
+              Akses: {ROLES.sales.perms.join(", ")}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -116,17 +123,12 @@ export default function Register() {
           </div>
 
           <label>Role / Jabatan</label>
-          <div className="input-group" style={{paddingRight:12}}>
+          <div className="input-group">
             <Briefcase size={17}/>
-            <select
-              value={role}
-              onChange={e => setRole(e.target.value)}
-              style={{border:0,background:"transparent",outline:"none",width:"100%",fontSize:14,color:"var(--text)",fontFamily:"inherit"}}
-            >
-              {Object.entries(ROLES).map(([key, {label}]) => (
-                <option key={key} value={key}>{label}</option>
-              ))}
-            </select>
+            <input
+              value="Sales"
+              disabled
+            />
           </div>
 
           <label>Password</label>

@@ -97,18 +97,66 @@ export function AppProvider({ children }) {
     return true;
   };
 
-  const register = (name, email, password, role = "sales") => {
-    const all = JSON.parse(localStorage.getItem("no_users") || JSON.stringify(SEED_USERS));
-    if (all.find(x => x.email.toLowerCase() === email.toLowerCase())) return { ok: false, msg: "Email sudah terdaftar." };
-    const avatar = name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-    const newUser = { id: Date.now(), name, email, password, role, avatar };
-    const updated = [...all, newUser];
-    saveUsers(updated);
-    setSession(newUser);
-    localStorage.setItem("no_session", JSON.stringify(newUser));
-    setAuditLog(prev => [{ id: Date.now(), ts: new Date().toLocaleString("id-ID"), user: name, action:"Register", detail:`Akun baru dibuat (${ROLES[role]?.label})`, type:"auth" }, ...prev]);
-    return { ok: true };
+  const register = (name, email, password) => {
+  const role = "sales";
+
+  const all = JSON.parse(
+    localStorage.getItem("no_users") ||
+    JSON.stringify(SEED_USERS)
+  );
+
+  if (
+    all.find(
+      x => x.email.toLowerCase() === email.toLowerCase()
+    )
+  ) {
+    return {
+      ok: false,
+      msg: "Email sudah terdaftar."
+    };
+  }
+
+  const avatar = name
+    .split(" ")
+    .map(w => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const newUser = {
+    id: Date.now(),
+    name,
+    email,
+    password,
+    role,
+    avatar
   };
+
+  const updated = [...all, newUser];
+
+  saveUsers(updated);
+
+  setSession(newUser);
+
+  localStorage.setItem(
+    "no_session",
+    JSON.stringify(newUser)
+  );
+
+  setAuditLog(prev => [
+    {
+      id: Date.now(),
+      ts: new Date().toLocaleString("id-ID"),
+      user: name,
+      action: "Register",
+      detail: "Akun baru dibuat (Sales)",
+      type: "auth"
+    },
+    ...prev
+  ]);
+
+  return { ok: true };
+};
 
   const logout = () => {
     addLog("Logout", "User logout", "auth");
