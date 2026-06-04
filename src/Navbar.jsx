@@ -2,41 +2,42 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, PackageCheck, PackageMinus, Truck, Users, Wallet,
-  BarChart3, ClipboardList, ShieldCheck, Network, LogOut, Moon, Sun,
-  Menu, X, ChevronDown
+  BarChart3, ClipboardList, ShieldCheck, Network, LogOut, Moon, Sun, Menu, X
 } from "lucide-react";
 import { useApp } from "./context.jsx";
 
 const LINKS = [
-  { to:"/dashboard",     label:"Dashboard",     icon:LayoutDashboard, page:"dashboard"  },
-  { to:"/barang-masuk",  label:"Barang Masuk",  icon:PackageCheck,    page:"inventory"  },
-  { to:"/barang-keluar", label:"Barang Keluar", icon:PackageMinus,    page:"inventory"  },
-  { to:"/supplier",      label:"Supplier",      icon:Truck,           page:"supplier"   },
-  { to:"/customer",      label:"Customer",      icon:Users,           page:"customer"   },
-  { to:"/cashflow",      label:"Cash Flow",     icon:Wallet,          page:"cashflow"   },
-  { to:"/reports",       label:"Laporan",       icon:BarChart3,       page:"reports"    },
-  { to:"/audit",         label:"Audit Log",     icon:ClipboardList,   page:"all"        },
-  { to:"/users",         label:"User & Role",   icon:ShieldCheck,     page:"all"        },
+  { to:"/dashboard",     label:"Dashboard",    icon:LayoutDashboard, page:"dashboard" },
+  { to:"/barang-masuk",  label:"Barang Masuk", icon:PackageCheck,    page:"inventory" },
+  { to:"/barang-keluar", label:"Barang Keluar",icon:PackageMinus,    page:"inventory" },
+  { to:"/supplier",      label:"Supplier",     icon:Truck,           page:"supplier"  },
+  { to:"/customer",      label:"Customer",     icon:Users,           page:"customer"  },
+  { to:"/cashflow",      label:"Cash Flow",    icon:Wallet,          page:"cashflow"  },
+  { to:"/reports",       label:"Laporan",      icon:BarChart3,       page:"reports"   },
+  { to:"/audit",         label:"Audit Log",    icon:ClipboardList,   page:"all"       },
+  { to:"/users",         label:"User & Role",  icon:ShieldCheck,     page:"all"       },
 ];
 
-const ROLE_COLOR = { admin:"badge-red", manager:"badge-navy", staff:"badge-green", viewer:"badge-muted" };
+const ROLE_COLOR = { owner:"badge-red", admin:"badge-navy", sales:"badge-green" };
 
 export default function Navbar() {
   const { session, logout, darkMode, toggleDark, hasPerm, ROLES } = useApp();
   const [open, setOpen] = useState(false);
   const nav = useNavigate();
 
-  const visible = LINKS.filter(l => l.page === "all" ? session?.role === "admin" : hasPerm(l.page));
+  const visible = LINKS.filter(l =>
+    l.page === "all" ? session?.role === "owner" : hasPerm(l.page)
+  );
 
   const doLogout = () => { logout(); nav("/login"); };
 
   return (
     <>
-   {!open && (
-  <button className="hamburger" onClick={() => setOpen(true)}>
-    <Menu size={22}/>
-  </button>
-)}
+      {!open && (
+        <button className="hamburger" onClick={() => setOpen(true)}>
+          <Menu size={22}/>
+        </button>
+      )}
 
       <aside className={`sidebar${open ? " open" : ""}`}>
         <div className="brand">
@@ -51,8 +52,8 @@ export default function Navbar() {
           <div className="avatar">{session?.avatar || "??"}</div>
           <div className="user-info">
             <strong>{session?.name}</strong>
-            <span className={`badge ${ROLE_COLOR[session?.role]}`}>
-              {ROLES[session?.role]?.label}
+            <span className={`badge ${ROLE_COLOR[session?.role] || "badge-muted"}`}>
+              {ROLES[session?.role]?.label || session?.role}
             </span>
           </div>
         </div>
