@@ -7,7 +7,8 @@ const FMT = v => "Rp " + (v||0).toLocaleString("id-ID");
 const EMPTY = { tanggal:"", kode:"", nama:"", qty:"", satuan:"unit", harga:"", supplier:"", keterangan:"" };
 
 export default function BarangMasuk() {
-  const { itemsIn, setItemsIn, suppliers, addLog } = useApp();
+  const { itemsIn, setItemsIn, suppliers, addLog, session } = useApp();
+  const isSales = session?.role === "sales";
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -54,13 +55,15 @@ export default function BarangMasuk() {
     <>
       <div className="page-header">
         <div className="page-title">
-          <h1>Barang Masuk</h1>
+          <h1>{isSales ? "Stok Barang" : "Barang Masuk"}</h1>
           <p>Catat dan kelola semua penerimaan barang dari supplier</p>
         </div>
-        <div className="header-actions">
-          <button className="secondary-btn" onClick={doExport}><Download size={16}/>Export Excel</button>
-          <button className="primary-btn" onClick={openAdd}><Plus size={16}/>Tambah</button>
-        </div>
+        {!isSales && (
+          <div className="header-actions">
+            <button className="secondary-btn" onClick={doExport}><Download size={16}/>Export Excel</button>
+            <button className="primary-btn" onClick={openAdd}><Plus size={16}/>Tambah</button>
+          </div>
+        )}
       </div>
 
       <div className="summary-row">
@@ -80,7 +83,7 @@ export default function BarangMasuk() {
 
       <div className="card table-card" style={{marginTop:24}}>
         <div className="table-head">
-          <h2>Daftar Barang Masuk</h2>
+          <h2>{isSales ? "Daftar Stok Barang" : "Daftar Barang Masuk"}</h2>
           <div className="search-bar" style={{minWidth:260}}>
             <Search size={16}/>
             <input placeholder="Cari nama, kode, supplier..." value={search} onChange={e=>setSearch(e.target.value)}/>
@@ -88,7 +91,7 @@ export default function BarangMasuk() {
         </div>
         <table>
           <thead><tr>
-            <th>Tanggal</th><th>Kode</th><th>Nama Barang</th><th>Qty</th><th>Harga</th><th>Supplier</th><th>Total</th><th>Aksi</th>
+            <th>Tanggal</th><th>Kode</th><th>Nama Barang</th><th>Qty</th><th>Harga</th><th>Supplier</th><th>Total</th>{!isSales && <th>Aksi</th>}
           </tr></thead>
           <tbody>
             {filtered.map(r=>(
@@ -100,12 +103,14 @@ export default function BarangMasuk() {
                 <td>{FMT(r.harga)}</td>
                 <td>{r.supplier}</td>
                 <td><strong>{FMT(r.total)}</strong></td>
+                {!isSales && (
                 <td>
                   <div style={{display:"flex",gap:8}}>
                     <button className="icon-btn" onClick={()=>openEdit(r)}><Edit2 size={15}/></button>
                     <button className="icon-btn danger" onClick={()=>setDel(r.id)}><Trash2 size={15}/></button>
                   </div>
                 </td>
+                )}
               </tr>
             ))}
             {filtered.length===0&&<tr><td colSpan={8} style={{textAlign:"center",color:"var(--muted)",padding:40}}>Tidak ada data</td></tr>}

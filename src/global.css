@@ -231,11 +231,11 @@ a { text-decoration: none; color: inherit; }
 .table-card { padding: 0; overflow: hidden; }
 table { width: 100%; border-collapse: collapse; }
 th {
-  text-align: left; font-size: 11px; text-transform: uppercase;
+  text-align: center; font-size: 11px; text-transform: uppercase;
   letter-spacing: .06em; color: var(--muted);
   background: var(--table-head-bg); padding: 14px 24px;
 }
-td { padding: 14px 24px; border-top: 1px solid var(--line); font-size: 14px; }
+td { text-align: center; padding: 14px 24px; border-top: 1px solid var(--line); font-size: 14px; }
 tr:hover td { background: var(--bg); }
 .dark tr:hover td { background: #1c2130; }
 
@@ -422,6 +422,8 @@ label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); 
   .form-grid2 { grid-template-columns: 1fr; }
   th, td { padding: 12px 16px; }
   .table-head { flex-direction: column; align-items: stretch; }
+  .table-card { width: 100%;  -webkit-overflow-scrolling: touch; }
+  .table-card table {   display: block; width: 100%; overflow-x: auto; white-space: nowrap; }
   .filter-tabs { overflow-x: auto; }
   .demo-grid { grid-template-columns: repeat(2,1fr); }
   .login-right { padding: 24px 16px; }
