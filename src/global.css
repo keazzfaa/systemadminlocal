@@ -223,7 +223,7 @@ a { text-decoration: none; color: inherit; }
 
 /* ─── GRIDS ───────────────────────────────────── */
 .grid-2  { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; }
-.grid-bottom { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; }
+.grid-bottom { display: grid; grid-template-columns:  1fr; gap: 20px; }
 .summary-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 20px; }
 .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 

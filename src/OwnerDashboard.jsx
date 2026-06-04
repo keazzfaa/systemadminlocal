@@ -1,0 +1,114 @@
+import React from "react";
+import { DollarSign, Wallet, CreditCard, TrendingUp, Package, Users, ArrowUpRight, Activity } from "lucide-react";
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { useApp } from "./context.jsx";
+import { useNavigate } from "react-router-dom";
+
+const FMT = v => "Rp " + (v||0).toLocaleString("id-ID");
+
+export default function OwnerDashboard() {
+  const { itemsIn, itemsOut, cashflow, customers, suppliers, auditLog, session } = useApp();
+  const nav = useNavigate();
+
+  const totalIn   = itemsIn.reduce((s,x)=>s+x.total,0);
+  const totalOut  = itemsOut.reduce((s,x)=>s+x.total,0);
+  const totalMasuk  = cashflow.filter(x=>x.jenis==="masuk").reduce((s,x)=>s+x.jumlah,0);
+  const totalKeluar = cashflow.filter(x=>x.jenis==="keluar").reduce((s,x)=>s+x.jumlah,0);
+  const netProfit   = totalMasuk - totalKeluar;
+
+  const barData = ["Sen","Sel","Rab","Kam","Jum","Sab","Min"].map((d,i)=>({
+    d, masuk:[42,66,52,92,72,58,82][i]*1000000, keluar:[22,30,28,45,35,20,30][i]*1000000
+  }));
+
+  const trendData = ["Jan","Feb","Mar","Apr","Mei","Jun"].map((m,i)=>({
+    m, v:[145,188,162,240,198,275][i]
+  }));
+
+  const recentLog = auditLog.slice(0,5);
+
+  return (
+    <>
+      <div className="page-header">
+        <div className="page-title">
+          <h1>Selamat datang, {session?.name?.split(" ")[0]} 👋</h1>
+          <p>Ringkasan operasional per {new Date().toLocaleDateString("id-ID",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
+        </div>
+      </div>
+
+      <section className="stat-grid">
+        {[
+          ["Total Penjualan", FMT(totalOut),    "+12.4%", TrendingUp,  "green", "/barang-keluar"],
+          ["Cash Masuk",      FMT(totalMasuk),  "+8.2%",  Wallet,      "green", "/cashflow"],
+          ["Cash Keluar",     FMT(totalKeluar), "-2.4%",  CreditCard,  "red",   "/cashflow"],
+          ["Net Profit",      FMT(netProfit),   "+18.1%", DollarSign,  "green", "/cashflow"],
+          ["Total Supplier",  suppliers.length+" mitra",  "Aktif",Package,"blue","/supplier"],
+          ["Total Customer",  customers.length+" klien",  "Aktif",Users,"blue","/customer"],
+        ].map(([t,v,b,I,color,link])=>(
+          <div className="card stat-card" key={t} onClick={()=>nav(link)} style={{cursor:"pointer"}}>
+            <div className="stat-top">
+              <span className="icon-badge"><I size={20}/></span>
+              <span className={`badge badge-${color}`}>{b}</span>
+            </div>
+            <h3>{t}</h3>
+            <strong>{v}</strong>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid-2">
+        <div className="card">
+          <div className="card-title">
+            <h2>Grafik Transaksi Mingguan</h2>
+            <span className="badge badge-blue">7 Hari</span>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={barData}>
+              <XAxis dataKey="d"/>
+              <Tooltip formatter={v=>"Rp "+v.toLocaleString("id-ID")}/>
+              <Bar dataKey="masuk"  name="Masuk"  radius={[6,6,0,0]} fill="var(--navy)"/>
+              <Bar dataKey="keluar" name="Keluar" radius={[6,6,0,0]} fill="var(--orange)"/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="card">
+          <div className="card-title">
+            <h2>Trend Penjualan</h2>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={trendData}>
+              <XAxis dataKey="m"/>
+              <Tooltip/>
+              <Line type="monotone" dataKey="v" strokeWidth={3} stroke="var(--navy)" dot={{r:5}}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <section className="grid-bottom" style={{marginTop:24}}>
+        <div className="card table-card">
+          <div className="table-head">
+            <h2>Transaksi Barang Keluar Terbaru</h2>
+            <button className="secondary-btn small" onClick={()=>nav("/barang-keluar")}>
+              Lihat Semua <ArrowUpRight size={15}/>
+            </button>
+          </div>
+          <table>
+            <thead><tr><th>Tanggal</th><th>Kode</th><th>Nama Barang</th><th>Qty</th><th>Total</th></tr></thead>
+            <tbody>
+              {itemsOut.slice(0,4).map(r=>(
+                <tr key={r.id}>
+                  <td>{r.tanggal}</td>
+                  <td><span className="badge badge-blue">{r.kode}</span></td>
+                  <td><strong>{r.nama}</strong></td>
+                  <td>{r.qty} {r.satuan}</td>
+                  <td><strong>{FMT(r.total)}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
+}
