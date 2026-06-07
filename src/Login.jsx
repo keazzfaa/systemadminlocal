@@ -40,9 +40,9 @@ export default function Login() {
             <span className="pill-feature" key={f}>✓ {f}</span>
           ))}
         </div>
-          {/* <div className="login-preview">
-            <div className="preview-grid">{Array.from({length:9}).map((_,i)=><span key={i}/>)}</div>
-          </div> */}
+        <div className="login-preview">
+          <div className="preview-grid">{Array.from({length:9}).map((_,i)=><span key={i}/>)}</div>
+        </div>
       </div>
 
       <div className="login-right">

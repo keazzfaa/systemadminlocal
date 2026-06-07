@@ -2,20 +2,24 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, PackageCheck, PackageMinus, Truck, Users, Wallet,
-  BarChart3, ClipboardList, ShieldCheck, Network, LogOut, Moon, Sun, Menu, X
+  BarChart3, ClipboardList, ShieldCheck, Network, LogOut, Moon, Sun,
+  Menu, X, UserCircle, ChevronRight, Store, FileText, MapPin
 } from "lucide-react";
 import { useApp } from "./context.jsx";
 
 const LINKS = [
-  { to:"/dashboard",     label:"Dashboard",    icon:LayoutDashboard, page:"dashboard" },
-  { to:"/barang-masuk",  label:"Barang Masuk", icon:PackageCheck,    page:"inventory" },
-  { to:"/barang-keluar", label:"Barang Keluar",icon:PackageMinus,    page:"inventory" },
-  { to:"/supplier",      label:"Supplier",     icon:Truck,           page:"supplier"  },
-  { to:"/customer",      label:"Customer",     icon:Users,           page:"customer"  },
-  { to:"/cashflow",      label:"Cash Flow",    icon:Wallet,          page:"cashflow"  },
-  { to:"/reports",       label:"Laporan",      icon:BarChart3,       page:"reports"   },
-  { to:"/audit",         label:"Audit Log",    icon:ClipboardList,   page:"all"       },
-  { to:"/users",         label:"User & Role",  icon:ShieldCheck,     page:"all"       },
+  { to:"/dashboard",       label:"Dashboard",        icon:LayoutDashboard, page:"dashboard" },
+  { to:"/barang-masuk",    label:"Barang Masuk",     icon:PackageCheck,    page:"inventory" },
+  { to:"/barang-keluar",   label:"Barang Keluar",    icon:PackageMinus,    page:"inventory" },
+  { to:"/supplier",        label:"Supplier",         icon:Truck,           page:"supplier"  },
+  { to:"/customer",        label:"Customer",         icon:Users,           page:"customer"  },
+  { to:"/cashflow",        label:"Cash Flow",        icon:Wallet,          page:"cashflow"  },
+  { to:"/reports",         label:"Laporan",          icon:BarChart3,       page:"reports"   },
+  { to:"/register-outlet", label:"Register Outlet",  icon:Store,           page:"register-outlet" },
+  { to:"/invoice-piutang", label:"Invoice Piutang",  icon:FileText,        page:"invoice-piutang" },
+  { to:"/absensi",         label:"Absensi Sales",    icon:MapPin,          page:"absensi"   },
+  { to:"/audit",           label:"Audit Log",        icon:ClipboardList,   page:"all"       },
+  { to:"/users",           label:"User & Role",      icon:ShieldCheck,     page:"all"       },
 ];
 
 const ROLE_COLOR = { owner:"badge-red", admin:"badge-navy", sales:"badge-green" };
@@ -48,15 +52,21 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="user-chip">
-          <div className="avatar">{session?.avatar || "??"}</div>
+        <NavLink to="/profile" className="user-chip user-chip-link" onClick={() => setOpen(false)}>
+          <div className="avatar-wrap-sm">
+            {session?.photoUrl
+              ? <img src={session.photoUrl} alt="av" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%"}}/>
+              : <div className="avatar">{session?.avatar || "??"}</div>
+            }
+          </div>
           <div className="user-info">
             <strong>{session?.name}</strong>
             <span className={`badge ${ROLE_COLOR[session?.role] || "badge-muted"}`}>
               {ROLES[session?.role]?.label || session?.role}
             </span>
           </div>
-        </div>
+          <ChevronRight size={15} style={{color:"var(--muted)",marginLeft:"auto",flexShrink:0}}/>
+        </NavLink>
 
         <nav className="nav-links">
           {visible.map(({ to, label, icon: Icon }) => (
@@ -66,6 +76,11 @@ export default function Navbar() {
               <span>{label}</span>
             </NavLink>
           ))}
+          <NavLink to="/profile" onClick={() => setOpen(false)}
+            className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
+            <UserCircle size={18}/>
+            <span>Profile</span>
+          </NavLink>
         </nav>
 
         <div className="sidebar-footer">
