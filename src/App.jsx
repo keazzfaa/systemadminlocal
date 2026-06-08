@@ -13,14 +13,18 @@ import CashFlow from "./CashFlow.jsx";
 import Reports from "./Reports.jsx";
 import AuditLog from "./AuditLog.jsx";
 import UserManagement from "./UserManagement.jsx";
-import Profile from "./Profile.jsx";
 import RegisterOutlet from "./RegisterOutlet.jsx";
 import InvoicePiutang from "./InvoicePiutang.jsx";
-import Absensi from "./Absensi.jsx";
+import AbsensiOutlet from "./AbsensiOutlet.jsx";
+import StockGudang from "./StockGudang.jsx";
+import StockOutlet from "./StockOutlet.jsx";
+import LaporanPenjualan from "./LaporanPenjualan.jsx";
+import LaporanPengiriman from "./LaporanPengiriman.jsx";
 
-function Guard({ children, page }) {
+function Guard({ children, page, roles }) {
   const { session, hasPerm } = useApp();
   if (!session) return <Navigate to="/login" replace />;
+  if (roles && !roles.includes(session.role)) return <Navigate to="/dashboard" replace />;
   if (page && !hasPerm(page) && session.role !== "owner") return <Navigate to="/dashboard" replace />;
   return children;
 }
@@ -56,10 +60,14 @@ export default function App() {
           <Route path="/reports"           element={<Guard page="reports"><Reports /></Guard>} />
           <Route path="/audit"             element={<Guard page="all"><AuditLog /></Guard>} />
           <Route path="/users"             element={<Guard page="all"><UserManagement /></Guard>} />
-          <Route path="/profile"           element={<Guard><Profile /></Guard>} />
-          <Route path="/register-outlet"   element={<Guard page="register-outlet"><RegisterOutlet /></Guard>} />
-          <Route path="/invoice-piutang"   element={<Guard page="invoice-piutang"><InvoicePiutang /></Guard>} />
-          <Route path="/absensi"           element={<Guard page="absensi"><Absensi /></Guard>} />
+          {/* Halaman baru */}
+          <Route path="/register-outlet"   element={<Guard page="dashboard"><RegisterOutlet /></Guard>} />
+          <Route path="/invoice-piutang"   element={<Guard page="dashboard"><InvoicePiutang /></Guard>} />
+          <Route path="/absensi-outlet"    element={<Guard roles={["owner","admin","sales"]}><AbsensiOutlet /></Guard>} />
+          <Route path="/stock-gudang"      element={<Guard page="inventory"><StockGudang /></Guard>} />
+          <Route path="/stock-outlet"      element={<Guard page="dashboard"><StockOutlet /></Guard>} />
+          <Route path="/laporan-penjualan" element={<Guard page="reports"><LaporanPenjualan /></Guard>} />
+          <Route path="/laporan-pengiriman"element={<Guard page="reports"><LaporanPengiriman /></Guard>} />
         </Routes>
       </Shell>
     </BrowserRouter>

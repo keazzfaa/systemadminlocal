@@ -1,59 +1,76 @@
 import React, { useState } from "react";
-import { Store, Plus, Search, MapPin, Phone, User, Edit2, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Search, Download, Edit2, Trash2, X, Save, MapPin, Phone, User, Store, ToggleLeft, ToggleRight } from "lucide-react";
 import { useApp } from "./context.jsx";
+import { exportToExcel } from "./utils.js";
 
-const AREAS = ["Malang Kota","Batu","Kepanjen","Blitar","Lawang","Singosari","Dampit"];
+const EMPTY = { nama:"", owner:"", telp:"", alamat:"", area:"", sales:"", program:"", status:"Aktif" };
+
+const SEED = [
+  { id:1, nama:"Toko Maju Sejahtera",  owner:"Budi Hartono",   telp:"0812-1234-5678", alamat:"Jl. Sudirman No.12, Jakarta Pusat",      area:"Jakarta",  sales:"Sari Dewi",    program:"Diskon Akhir Tahun", status:"Aktif"    },
+  { id:2, nama:"CV. Berkah Mandiri",   owner:"Rina Susanti",   telp:"0821-2345-6789", alamat:"Jl. Gatot Subroto No.45, Bandung",        area:"Bandung",  sales:"Budi Santoso", program:"Bonus Volume",       status:"Aktif"    },
+  { id:3, nama:"UD. Sumber Rezeki",    owner:"Hendra Wijaya",  telp:"0831-3456-7890", alamat:"Jl. Ahmad Yani No.88, Surabaya",           area:"Surabaya", sales:"Eka Permana",  program:"-",                  status:"Aktif"    },
+  { id:4, nama:"Toko Harapan Baru",    owner:"Dewi Lestari",   telp:"0851-4567-8901", alamat:"Jl. Diponegoro No.23, Semarang",           area:"Semarang", sales:"Sari Dewi",    program:"-",                  status:"Nonaktif" },
+  { id:5, nama:"PT. Sentosa Abadi",    owner:"Anton Halim",    telp:"0877-6543-2109", alamat:"Jl. Pemuda No.67, Medan",                  area:"Medan",    sales:"Budi Santoso", program:"Promo Lebaran",      status:"Aktif"    },
+  { id:6, nama:"CV. Maju Terus",       owner:"Sri Wulan",      telp:"0856-9876-5432", alamat:"Jl. Kebon Jeruk No.14, Jakarta Barat",     area:"Jakarta",  sales:"Sari Dewi",    program:"Bonus Volume",       status:"Aktif"    },
+  { id:7, nama:"UD. Karya Nyata",      owner:"Fajar Nugroho",  telp:"0899-1122-3344", alamat:"Jl. Raya Darmo No.55, Surabaya",           area:"Surabaya", sales:"Eka Permana",  program:"-",                  status:"Nonaktif" },
+];
+
+const SALES_LIST = ["Sari Dewi","Budi Santoso","Eka Permana"];
+const AREA_LIST  = ["Jakarta","Bandung","Surabaya","Semarang","Medan","Makassar"];
 
 export default function RegisterOutlet() {
-  const { outlets, setOutlets, users, session, addLog } = useApp();
-  const [search, setSearch] = useState("");
+  const { session, addLog } = useApp();
+  const [outlets, setOutlets] = useState(SEED);
+  const [search, setSearch]   = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterArea, setFilterArea]     = useState("all");
-  const [modal, setModal] = useState(null); // null | "add" | "edit" | "view"
-  const [form, setForm]   = useState({});
-  const [delConfirm, setDelConfirm] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [form, setForm]   = useState(EMPTY);
+  const [editId, setEditId] = useState(null);
+  const [del, setDel]     = useState(null);
 
-  const salesList = users.filter(x=>x.role==="sales").map(x=>x.name);
+  const isOwnerOrAdmin = session?.role === "owner" || session?.role === "admin";
 
-  const filtered = outlets.filter(o => {
+  const filtered = outlets.filter(x => {
     const q = search.toLowerCase();
-    const matchQ = !q || o.namaOutlet.toLowerCase().includes(q) || o.namaOwner.toLowerCase().includes(q) || o.telp.includes(q);
-    const matchS = filterStatus==="all" || o.status===filterStatus;
-    const matchA = filterArea==="all" || o.area===filterArea;
+    const matchQ = x.nama.toLowerCase().includes(q) || x.owner.toLowerCase().includes(q) || x.area.toLowerCase().includes(q) || x.sales.toLowerCase().includes(q);
+    const matchS  = filterStatus === "all" || x.status === filterStatus;
+    const matchA  = filterArea   === "all" || x.area   === filterArea;
     return matchQ && matchS && matchA;
   });
 
-  const openAdd = () => {
-    setForm({ namaOutlet:"", namaOwner:"", telp:"", alamat:"", area:"", salesman: session?.role==="sales"?session.name:"", status:"Aktif", tanggalDaftar: new Date().toISOString().slice(0,10), koordinat:"" });
-    setModal("add");
-  };
-
-  const openEdit = (o) => { setForm({...o}); setModal("edit"); };
-  const openView = (o) => { setForm({...o}); setModal("view"); };
+  const openAdd  = () => { setForm(EMPTY); setEditId(null); setModal(true); };
+  const openEdit = (o)  => { setForm({...o}); setEditId(o.id); setModal(true); };
 
   const save = () => {
-    if (!form.namaOutlet || !form.namaOwner || !form.telp || !form.area) return alert("Lengkapi field wajib!");
-    if (modal === "add") {
-      const newO = { ...form, id: Date.now() };
-      setOutlets([newO, ...outlets]);
-      addLog("Register Outlet", `Outlet baru: ${form.namaOutlet} (${form.namaOwner})`);
+    if (!form.nama || !form.owner || !form.telp) return;
+    if (editId) {
+      setOutlets(prev => prev.map(x => x.id === editId ? {...form, id:editId} : x));
+      addLog("Edit Outlet", `${form.nama} diperbarui`, "data");
     } else {
-      setOutlets(outlets.map(x => x.id===form.id ? form : x));
-      addLog("Edit Outlet", `Update outlet: ${form.namaOutlet}`);
+      const neo = {...form, id: Date.now()};
+      setOutlets(prev => [neo, ...prev]);
+      addLog("Tambah Outlet", `${form.nama} didaftarkan`, "data");
     }
-    setModal(null);
+    setModal(false);
   };
 
-  const deleteO = (id) => {
-    setOutlets(outlets.filter(x=>x.id!==id));
-    addLog("Hapus Outlet", `Outlet ID ${id} dihapus`);
-    setDelConfirm(null);
+  const remove = (id) => {
+    const o = outlets.find(x => x.id === id);
+    setOutlets(prev => prev.filter(x => x.id !== id));
+    addLog("Hapus Outlet", `${o.nama} dihapus`, "data");
+    setDel(null);
   };
 
-  const toggleStatus = (o) => {
-    const newStatus = o.status==="Aktif" ? "Nonaktif" : "Aktif";
-    setOutlets(outlets.map(x=>x.id===o.id?{...x,status:newStatus}:x));
-    addLog("Toggle Outlet", `${o.namaOutlet} → ${newStatus}`);
+  const toggleStatus = (id) => {
+    setOutlets(prev => prev.map(x => x.id === id ? {...x, status: x.status==="Aktif"?"Nonaktif":"Aktif"} : x));
+    const o = outlets.find(x=>x.id===id);
+    addLog("Toggle Outlet", `${o.nama} → ${o.status==="Aktif"?"Nonaktif":"Aktif"}`, "data");
+  };
+
+  const doExport = () => {
+    exportToExcel(filtered, "Register_Outlet", ["nama","owner","telp","alamat","area","sales","program","status"]);
+    addLog("Export Excel","Register Outlet diekspor","export");
   };
 
   const areas = [...new Set(outlets.map(x=>x.area))];
@@ -62,183 +79,169 @@ export default function RegisterOutlet() {
     <>
       <div className="page-header">
         <div className="page-title">
-          <h1><Store size={28} style={{verticalAlign:"middle",marginRight:8}}/>Register Outlet</h1>
-          <p>Manajemen data outlet dan area penjualan</p>
+          <h1>Register Outlet</h1>
+          <p>Kelola data outlet dan status aktif/nonaktif</p>
         </div>
         <div className="header-actions">
-          {(session?.role==="owner"||session?.role==="admin"||session?.role==="sales") && (
-            <button className="primary-btn" onClick={openAdd}><Plus size={16}/>Tambah Outlet</button>
-          )}
+          <button className="secondary-btn" onClick={doExport}><Download size={16}/>Export</button>
+          {isOwnerOrAdmin && <button className="primary-btn" onClick={openAdd}><Plus size={16}/>Tambah Outlet</button>}
         </div>
       </div>
 
       {/* Summary */}
-      <div className="stat-grid" style={{gridTemplateColumns:"repeat(4,1fr)",marginBottom:20}}>
+      <div className="summary-row">
         {[
-          ["Total Outlet", outlets.length, "badge-blue"],
-          ["Aktif",        outlets.filter(x=>x.status==="Aktif").length, "badge-green"],
-          ["Nonaktif",     outlets.filter(x=>x.status==="Nonaktif").length, "badge-red"],
-          ["Area",         areas.length, "badge-navy"],
-        ].map(([l,v,c])=>(
-          <div className="card" key={l} style={{padding:"16px 20px",textAlign:"center"}}>
-            <div style={{fontSize:28,fontWeight:800,color:"var(--navy)"}}>{v}</div>
-            <div style={{fontSize:13,color:"var(--muted)",marginTop:2}}>{l}</div>
+          ["Total Outlet",    outlets.length],
+          ["Aktif",           outlets.filter(x=>x.status==="Aktif").length],
+          ["Nonaktif",        outlets.filter(x=>x.status==="Nonaktif").length],
+          ["Area Coverage",   areas.length+" area"],
+        ].map(([l,v])=>(
+          <div className="card stat-card" key={l}>
+            <h3>{l}</h3>
+            <strong>{v}</strong>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="card" style={{marginBottom:20,padding:"16px 20px"}}>
+      <div className="card" style={{marginBottom:20}}>
         <div style={{display:"flex",gap:12,flexWrap:"wrap",alignItems:"center"}}>
-          <div className="search-bar" style={{flex:1,minWidth:200}}>
-            <Search size={16} color="var(--muted)"/>
-            <input placeholder="Cari outlet, owner, telp..." value={search} onChange={e=>setSearch(e.target.value)}/>
+          <div className="search-bar" style={{minWidth:240}}>
+            <Search size={16} style={{color:"var(--muted)",flexShrink:0}}/>
+            <input placeholder="Cari outlet, owner, area..." value={search} onChange={e=>setSearch(e.target.value)}/>
           </div>
-          <select className="pill-btn" value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} style={{height:44,paddingLeft:14,paddingRight:14,border:"1px solid var(--line)",background:"var(--bg)",color:"var(--text)",borderRadius:999}}>
-            <option value="all">Semua Status</option>
-            <option value="Aktif">Aktif</option>
-            <option value="Nonaktif">Nonaktif</option>
-          </select>
-          <select className="pill-btn" value={filterArea} onChange={e=>setFilterArea(e.target.value)} style={{height:44,paddingLeft:14,paddingRight:14,border:"1px solid var(--line)",background:"var(--bg)",color:"var(--text)",borderRadius:999}}>
-            <option value="all">Semua Area</option>
-            {areas.map(a=><option key={a} value={a}>{a}</option>)}
-          </select>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {["all","Aktif","Nonaktif"].map(s=>(
+              <button key={s} className={`pill-btn small${filterStatus===s?" active":""}`} onClick={()=>setFilterStatus(s)}>
+                {s==="all"?"Semua Status":s}
+              </button>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {["all",...areas].map(a=>(
+              <button key={a} className={`pill-btn small${filterArea===a?" active":""}`} onClick={()=>setFilterArea(a)}>
+                {a==="all"?"Semua Area":a}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Table */}
       <div className="card table-card">
-        <div className="table-head">
-          <h2>Data Outlet ({filtered.length})</h2>
-        </div>
         <div style={{overflowX:"auto"}}>
           <table>
             <thead>
               <tr>
-                <th>Nama Outlet</th>
-                <th>Nama Owner</th>
-                <th>Telp</th>
-                <th>Area</th>
-                <th>Salesman</th>
-                <th>Tgl Daftar</th>
-                <th>Status</th>
-                <th>Aksi</th>
+                {["Nama Outlet","Nama Owner","No. Telp","Alamat","Area","Sales","Program","Status","Aksi"].map(h=>(
+                  <th key={h}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
+              {filtered.length === 0 && (
+                <tr><td colSpan={9} style={{textAlign:"center",padding:32,color:"var(--muted)"}}>Tidak ada data</td></tr>
+              )}
               {filtered.map(o=>(
                 <tr key={o.id}>
-                  <td>
-                    <div style={{fontWeight:700,fontSize:13}}>{o.namaOutlet}</div>
-                    {o.alamat && <div style={{fontSize:11,color:"var(--muted)"}}>{o.alamat.slice(0,40)}...</div>}
+                  <td><strong>{o.nama}</strong></td>
+                  <td><span style={{display:"flex",alignItems:"center",gap:4}}><User size={13} style={{color:"var(--muted)"}}/>  {o.owner}</span></td>
+                  <td><span style={{color:"var(--navy)",fontWeight:600}}>{o.telp}</span></td>
+                  <td style={{maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    <span style={{display:"flex",alignItems:"center",gap:4}} title={o.alamat}><MapPin size={13} style={{color:"var(--muted)",flexShrink:0}}/>{o.alamat}</span>
                   </td>
-                  <td style={{fontWeight:600}}>{o.namaOwner}</td>
-                  <td style={{fontSize:13}}>{o.telp}</td>
                   <td><span className="badge badge-blue">{o.area}</span></td>
-                  <td style={{fontSize:13}}>{o.salesman}</td>
-                  <td style={{fontSize:12,color:"var(--muted)"}}>{o.tanggalDaftar}</td>
+                  <td>{o.sales}</td>
+                  <td>{o.program!=="-"?<span className="badge badge-green">{o.program}</span>:<span style={{color:"var(--muted)"}}>-</span>}</td>
                   <td>
-                    <button onClick={()=>toggleStatus(o)} style={{background:"none",border:"none",cursor:"pointer",padding:0}}>
-                      <span className={`badge badge-${o.status==="Aktif"?"green":"red"}`}>{o.status}</span>
-                    </button>
+                    <span style={{background:o.status==="Aktif"?"var(--green)":"var(--muted)",color:"#fff",borderRadius:999,padding:"3px 12px",fontSize:12,fontWeight:700,cursor:isOwnerOrAdmin?"pointer":"default"}}
+                          onClick={()=>isOwnerOrAdmin&&toggleStatus(o.id)}>
+                      {o.status}
+                    </span>
                   </td>
                   <td>
-                    <div style={{display:"flex",gap:4}}>
-                      <button className="icon-btn" title="Lihat" onClick={()=>openView(o)}><Eye size={14}/></button>
-                      {(session?.role!=="sales"||o.salesman===session?.name) && (
-                        <button className="icon-btn" title="Edit" onClick={()=>openEdit(o)}><Edit2 size={14}/></button>
-                      )}
-                      {session?.role==="owner"&&(
-                        <button className="icon-btn danger" title="Hapus" onClick={()=>setDelConfirm(o.id)}><Trash2 size={14}/></button>
-                      )}
-                    </div>
+                    {isOwnerOrAdmin && (
+                      <div style={{display:"flex",gap:4}}>
+                        <button className="icon-btn" onClick={()=>openEdit(o)} title="Edit"><Edit2 size={14}/></button>
+                        <button className="icon-btn danger" onClick={()=>setDel(o)} title="Hapus"><Trash2 size={14}/></button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
-              {filtered.length===0 && <tr><td colSpan={8} style={{textAlign:"center",color:"var(--muted)",padding:40}}>Tidak ada data outlet</td></tr>}
             </tbody>
           </table>
         </div>
+        <div style={{marginTop:12,color:"var(--muted)",fontSize:13}}>
+          Menampilkan {filtered.length} dari {outlets.length} outlet
+        </div>
       </div>
 
-      {/* Modal Add/Edit/View */}
-      {(modal==="add"||modal==="edit"||modal==="view") && (
-        <div className="modal-backdrop" onClick={()=>setModal(null)}>
-          <div className="modal" style={{maxWidth:560}} onClick={e=>e.stopPropagation()}>
-            <h3 style={{margin:"0 0 20px",fontSize:18,fontWeight:800}}>
-              {modal==="add"?"Tambah Outlet Baru":modal==="edit"?"Edit Outlet":"Detail Outlet"}
-            </h3>
-            <div className="form-grid2">
-              {[
-                ["namaOutlet","Nama Outlet","text",true],
-                ["namaOwner","Nama Owner","text",true],
-                ["telp","No. Telepon","text",true],
-                ["tanggalDaftar","Tanggal Daftar","date",false],
-              ].map(([k,l,t,req])=>(
-                <div key={k}>
-                  <label className="form-label">{l}{req&&<span style={{color:"var(--red)"}}>*</span>}</label>
-                  <input className="form-input" type={t} value={form[k]||""} disabled={modal==="view"}
-                    onChange={e=>setForm(f=>({...f,[k]:e.target.value}))}/>
+      {/* Modal Add/Edit */}
+      {modal && (
+        <div className="modal-overlay" onClick={()=>setModal(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editId?"Edit Outlet":"Tambah Outlet Baru"}</h3>
+              <button className="icon-btn" onClick={()=>setModal(false)}><X size={16}/></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                {[
+                  ["Nama Outlet","nama","text","Nama toko/outlet"],
+                  ["Nama Owner","owner","text","Nama pemilik"],
+                  ["No. Telp","telp","text","08xx-xxxx-xxxx"],
+                  ["Alamat","alamat","text","Jl. ..."],
+                ].map(([label,key,type,ph])=>(
+                  <div className="form-group" key={key}>
+                    <label>{label}</label>
+                    <input type={type} placeholder={ph} value={form[key]} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))}/>
+                  </div>
+                ))}
+                <div className="form-group">
+                  <label>Area</label>
+                  <select value={form.area} onChange={e=>setForm(p=>({...p,area:e.target.value}))}>
+                    <option value="">Pilih area</option>
+                    {AREA_LIST.map(a=><option key={a}>{a}</option>)}
+                  </select>
                 </div>
-              ))}
-              <div style={{gridColumn:"1/-1"}}>
-                <label className="form-label">Alamat</label>
-                <textarea className="form-input" rows={2} value={form.alamat||""} disabled={modal==="view"}
-                  onChange={e=>setForm(f=>({...f,alamat:e.target.value}))} style={{resize:"vertical"}}/>
-              </div>
-              <div>
-                <label className="form-label">Area<span style={{color:"var(--red)"}}>*</span></label>
-                {modal==="view"
-                  ? <input className="form-input" value={form.area||""} disabled/>
-                  : <select className="form-input" value={form.area||""} onChange={e=>setForm(f=>({...f,area:e.target.value}))}>
-                      <option value="">-- Pilih Area --</option>
-                      {AREAS.map(a=><option key={a}>{a}</option>)}
-                    </select>
-                }
-              </div>
-              <div>
-                <label className="form-label">Salesman</label>
-                {modal==="view"||session?.role==="sales"
-                  ? <input className="form-input" value={form.salesman||""} disabled/>
-                  : <select className="form-input" value={form.salesman||""} onChange={e=>setForm(f=>({...f,salesman:e.target.value}))}>
-                      <option value="">-- Pilih Salesman --</option>
-                      {salesList.map(s=><option key={s}>{s}</option>)}
-                    </select>
-                }
-              </div>
-              <div>
-                <label className="form-label">Status</label>
-                {modal==="view"
-                  ? <span className={`badge badge-${form.status==="Aktif"?"green":"red"}`}>{form.status}</span>
-                  : <select className="form-input" value={form.status||"Aktif"} onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
-                      <option>Aktif</option><option>Nonaktif</option>
-                    </select>
-                }
-              </div>
-              <div>
-                <label className="form-label">Koordinat GPS</label>
-                <input className="form-input" placeholder="-7.9797,112.6304" value={form.koordinat||""} disabled={modal==="view"}
-                  onChange={e=>setForm(f=>({...f,koordinat:e.target.value}))}/>
+                <div className="form-group">
+                  <label>Sales</label>
+                  <select value={form.sales} onChange={e=>setForm(p=>({...p,sales:e.target.value}))}>
+                    <option value="">Pilih sales</option>
+                    {SALES_LIST.map(s=><option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Program</label>
+                  <input placeholder="Nama program (opsional)" value={form.program} onChange={e=>setForm(p=>({...p,program:e.target.value}))}/>
+                </div>
+                <div className="form-group">
+                  <label>Status</label>
+                  <select value={form.status} onChange={e=>setForm(p=>({...p,status:e.target.value}))}>
+                    <option>Aktif</option>
+                    <option>Nonaktif</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div style={{display:"flex",gap:10,marginTop:24,justifyContent:"flex-end"}}>
-              <button className="secondary-btn" onClick={()=>setModal(null)}>Tutup</button>
-              {modal!=="view" && <button className="primary-btn" onClick={save}>{modal==="add"?"Simpan":"Update"}</button>}
+            <div className="modal-footer">
+              <button className="secondary-btn" onClick={()=>setModal(false)}>Batal</button>
+              <button className="primary-btn" onClick={save}><Save size={15}/>Simpan</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete confirm */}
-      {delConfirm && (
-        <div className="modal-backdrop" onClick={()=>setDelConfirm(null)}>
-          <div className="modal" style={{maxWidth:400,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
-            <Trash2 size={40} color="var(--red)" style={{margin:"0 auto 16px"}}/>
-            <h3 style={{margin:"0 0 8px"}}>Hapus Outlet?</h3>
-            <p style={{color:"var(--muted)",margin:"0 0 24px"}}>Data outlet ini akan dihapus permanen.</p>
-            <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-              <button className="secondary-btn" onClick={()=>setDelConfirm(null)}>Batal</button>
-              <button className="primary-btn danger-btn" onClick={()=>deleteO(delConfirm)}>Hapus</button>
+      {/* Confirm Delete */}
+      {del && (
+        <div className="modal-overlay" onClick={()=>setDel(null)}>
+          <div className="modal" style={{maxWidth:400}} onClick={e=>e.stopPropagation()}>
+            <div className="modal-header"><h3>Hapus Outlet</h3><button className="icon-btn" onClick={()=>setDel(null)}><X size={16}/></button></div>
+            <div className="modal-body"><p>Hapus <strong>{del.nama}</strong>? Tindakan ini tidak bisa dibatalkan.</p></div>
+            <div className="modal-footer">
+              <button className="secondary-btn" onClick={()=>setDel(null)}>Batal</button>
+              <button className="primary-btn danger-btn" onClick={()=>remove(del.id)}><Trash2 size={15}/>Hapus</button>
             </div>
           </div>
         </div>

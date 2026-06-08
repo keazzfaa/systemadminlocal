@@ -67,7 +67,10 @@ function OwnerDashboard() {
       </section>
 
       {/* Register Outlet & Piutang Summary */}
-      <section className="stat-grid" style={{gridTemplateColumns:"repeat(4,1fr)",marginBottom:20}}>
+      <section
+  className="stat-grid stat-grid-piutang"   
+          style={{ marginBottom:20 }}
+          >
         <div className="card stat-card" onClick={()=>nav("/register-outlet")} style={{cursor:"pointer"}}>
           <div className="stat-top"><span className="icon-badge"><Store size={20}/></span><span className="badge badge-blue">{outlets.filter(x=>x.status==="Aktif").length} Aktif</span></div>
           <h3>Total Outlet</h3>
