@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, PackageCheck, PackageMinus, Truck, Users, Wallet,
   BarChart3, ClipboardList, ShieldCheck, Network, LogOut, Moon, Sun,
-  Menu, X, UserCircle, ChevronRight, Store, FileText, MapPin
+  Menu, X, UserCircle, ChevronRight, ChevronDown, Store, FileText, MapPin
 } from "lucide-react";
 import { useApp } from "./context.jsx";
 
@@ -11,6 +11,8 @@ const LINKS = [
   { to:"/dashboard",       label:"Dashboard",        icon:LayoutDashboard, page:"dashboard" },
   { to:"/barang-masuk",    label:"Barang Masuk",     icon:PackageCheck,    page:"inventory" },
   { to:"/barang-keluar",   label:"Barang Keluar",    icon:PackageMinus,    page:"inventory" },
+  { to:"/stock-gudang",    label:"Stock Gudang",     icon:PackageCheck,    page:"stock-gudang" },
+  { to:"/stock-outlet",    label:"Stock Outlet",     icon:PackageCheck,    page:"stock-outlet" },
   { to:"/supplier",        label:"Supplier",         icon:Truck,           page:"supplier"  },
   { to:"/customer",        label:"Customer",         icon:Users,           page:"customer"  },
   { to:"/cashflow",        label:"Cash Flow",        icon:Wallet,          page:"cashflow"  },
@@ -22,12 +24,43 @@ const LINKS = [
   { to:"/users",           label:"User & Role",      icon:ShieldCheck,     page:"all"       },
 ];
 
+const MENU_GROUPS = [
+  {
+    title: "UTAMA",
+    items: ["Dashboard"]
+  },
+  {
+    title: "INVENTORI",
+    items: ["Barang Masuk","Barang Keluar","Stock Gudang","Stock Outlet"]
+  },
+  {
+    title: "MITRA",
+    items: ["Supplier","Customer","Register Outlet"]
+  },
+  {
+    title: "KEUANGAN",
+    items: ["Cash Flow","Invoice Piutang","Laporan"]
+  },
+  {
+    title: "SISTEM",
+    items: ["Absensi Sales","Audit Log","User & Role","Profile"]
+  }
+];
+
 const ROLE_COLOR = { owner:"badge-red", admin:"badge-navy", sales:"badge-green" };
 
 export default function Navbar() {
   const { session, logout, darkMode, toggleDark, hasPerm, ROLES } = useApp();
   const [open, setOpen] = useState(false);
+  const [sections, setSections] = useState({
+    utama: true,
+    inventori: true,
+    mitra: true,
+    keuangan: true,
+    sistem: true,
+  });
   const nav = useNavigate();
+  
 
   const visible = LINKS.filter(l =>
     l.page === "all" ? session?.role === "owner" : hasPerm(l.page)
@@ -68,20 +101,64 @@ export default function Navbar() {
           <ChevronRight size={15} style={{color:"var(--muted)",marginLeft:"auto",flexShrink:0}}/>
         </NavLink>
 
-        <nav className="nav-links">
-          {visible.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} onClick={() => setOpen(false)}
-              className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
-              <Icon size={18}/>
-              <span>{label}</span>
-            </NavLink>
-          ))}
-          <NavLink to="/profile" onClick={() => setOpen(false)}
-            className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
-            <UserCircle size={18}/>
-            <span>Profile</span>
-          </NavLink>
-        </nav>
+        <nav className="nav-links" style={{overflowY:"auto",flex:1}}>
+  {MENU_GROUPS.map(group => {
+    const key = group.title.toLowerCase();
+
+    return (
+      <div key={group.title} className="nav-group">
+        <button
+          className="nav-group-header"
+          onClick={() =>
+            setSections(prev => ({
+              ...prev,
+              [key]: !prev[key]
+            }))
+          }
+        >
+          <span>{group.title}</span>
+          {sections[key]
+            ? <ChevronDown size={14}/>
+            : <ChevronRight size={14}/>
+          }
+        </button>
+
+        {sections[key] && (
+          <>
+            {visible
+              .filter(item => group.items.includes(item.label))
+              .map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setOpen(false)}
+                  className={({ isActive }) =>
+                    `nav-item${isActive ? " active" : ""}`
+                  }
+                >
+                  <Icon size={18}/>
+                  <span>{label}</span>
+                </NavLink>
+              ))}
+
+            {group.title === "SISTEM" && (
+              <NavLink
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  `nav-item${isActive ? " active" : ""}`
+                }
+              >
+                <UserCircle size={18}/>
+                <span>Profile</span>
+              </NavLink>
+            )}
+          </>
+        )}
+      </div>
+    );
+  })}
+</nav>
 
         <div className="sidebar-footer">
           <button className="nav-item dark-toggle" onClick={toggleDark}>

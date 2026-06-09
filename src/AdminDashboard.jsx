@@ -30,7 +30,7 @@ export default function AdminDashboard() {
     <>
       <div className="page-header">
         <div className="page-title">
-          <h1>Selamat datang, {session?.name?.split(" ")[0]} 👋</h1>
+          <h1>Selamat datang, {session?.name?.split(" ")[0]}</h1>
           <p>Ringkasan operasional per {new Date().toLocaleDateString("id-ID",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
         </div>
       </div>
