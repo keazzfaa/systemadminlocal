@@ -99,10 +99,10 @@ export default function UserManagement() {
                     </span>
                   </td>
                   <td>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
                       {ROLES[u.role]?.perms.includes("all")
                         ? <span className="badge badge-red" style={{fontSize:10}}>Semua Modul</span>
-                        : ROLES[u.role]?.perms.slice(0,4).map(p => (
+                        : ROLES[u.role]?.perms.slice(0.9).map(p => (
                             <span key={p} className="badge badge-muted" style={{fontSize:10}}>{p}</span>
                           ))
                       }
@@ -119,31 +119,6 @@ export default function UserManagement() {
                 </tr>
               );
             })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Matriks Akses */}
-      <div className="card" style={{marginTop:24}}>
-        <h2 style={{marginBottom:20}}>Matriks Hak Akses Role</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Modul</th>
-              {Object.entries(ROLES).map(([key, {label}]) => <th key={key}>{label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {["dashboard","inventory","cashflow","supplier","customer","reports","audit","users"].map(mod => (
-              <tr key={mod}>
-                <td><strong style={{textTransform:"capitalize"}}>{mod}</strong></td>
-                {Object.entries(ROLES).map(([key, {perms}]) => (
-                  <td key={key} style={{textAlign:"center",fontSize:16}}>
-                    {perms.includes("all") || perms.includes(mod) ? "✅" : "❌"}
-                  </td>
-                ))}
-              </tr>
-            ))}
           </tbody>
         </table>
       </div>

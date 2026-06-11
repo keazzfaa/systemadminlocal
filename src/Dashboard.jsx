@@ -88,8 +88,8 @@ function OwnerDashboard() {
           <strong style={{fontSize:13}}>{FMT_SHORT(invoiceOverdue.reduce((s,x)=>s+x.sisa,0))}</strong>
           <small style={{color:"var(--muted)",fontSize:11}}>30–90 hari</small>
         </div>
-        <div className="card stat-card" onClick={()=>nav("/invoice-piutang")} style={{cursor:"pointer",borderLeft:"3px solid var(--red)",background:"#fff5f5"}}>
-          <div className="stat-top"><span className="icon-badge" style={{background:"#fee2e2"}}><AlertTriangle size={20} color="var(--red)"/></span><span className="badge badge-red">{invoicePriority.length} invoice</span></div>
+        <div className="card stat-card" onClick={()=>nav("/invoice-piutang")} style={{cursor:"pointer",borderLeft:"3px solid var(--red)"}}>
+          <div className="stat-top"><span className="icon-badge" ><AlertTriangle size={20} color="var(--red)"/></span><span className="badge badge-red">{invoicePriority.length} invoice</span></div>
           <h3>Piutang Priority</h3>
           <strong style={{fontSize:13,color:"var(--red)"}}>{FMT_SHORT(invoicePriority.reduce((s,x)=>s+x.sisa,0))}</strong>
           <small style={{color:"var(--red)",fontSize:11,fontWeight:700}}>⚠ &gt;90 hari</small>
@@ -178,11 +178,17 @@ function OwnerDashboard() {
       {/* Priority Invoices */}
       {invoicePriority.length > 0 && (
         <section style={{marginTop:20}}>
-          <div className="card table-card" style={{border:"2px solid var(--red)"}}>
-            <div className="table-head" style={{background:"#fff5f5",margin:"-24px -24px 16px",padding:"16px 24px",borderRadius:"22px 22px 0 0"}}>
+          <div className="card table-card" style={{border:"2px solid var(--red)",
+              padding:"0",
+              overflow:"hidden"
+          }}>
+            <div className="table-head" style={{background:"#fff5f5",
+              padding:"16px 20px",
+              borderBottom:"1px solid #f0d0d0"}}>
               <h2 style={{color:"var(--red)",display:"flex",alignItems:"center",gap:8}}><AlertTriangle size={18}/> Invoice Piutang PRIORITY (&gt;90 Hari)</h2>
               <button className="secondary-btn small" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>nav("/invoice-piutang")}>Lihat Semua</button>
             </div>
+            <div classname="card table-card">
             <table>
               <thead><tr><th>No Invoice</th><th>Outlet</th><th>Salesman</th><th>Jatuh Tempo</th><th>Sisa Tagihan</th></tr></thead>
               <tbody>
@@ -197,6 +203,7 @@ function OwnerDashboard() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </section>
       )}

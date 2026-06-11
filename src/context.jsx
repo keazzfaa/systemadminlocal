@@ -4,8 +4,8 @@ const AppContext = createContext(null);
 
 export const ROLES = {
   owner: { label: "Owner",         color: "red",   perms: ["all"] },
-  admin: { label: "Administrator", color: "navy",  perms: ["dashboard","inventory","reports","supplier","customer","register-outlet","invoice-piutang","absensi"] },
-  sales: { label: "Sales",         color: "green", perms: ["dashboard","inventory","sales","customer","barang-keluar","barang-masuk","register-outlet","invoice-piutang","absensi"] },
+  admin: { label: "Administrator", color: "navy",  perms: ["dashboard","inventory","stock-gudang","stock-outlet","reports","supplier","customer","register-outlet","invoice-piutang","absensi"] },
+  sales: { label: "Sales",         color: "green", perms: ["dashboard","stock-gudang","customer","register-outlet","invoice-piutang","absensi"] },
 };
 
 const NOW = new Date().toLocaleDateString("id-ID", { day:"2-digit", month:"long", year:"numeric" });

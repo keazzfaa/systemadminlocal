@@ -57,6 +57,29 @@ const NAV_GROUPS = [
   },
 ];
 
+const MENU_GROUPS = [
+  {
+    title: "UTAMA",
+    items: ["Dashboard"]
+  },
+  {
+    title: "INVENTORI",
+    items: ["Barang Masuk","Barang Keluar","Stock Gudang","Stock Outlet"]
+  },
+  {
+    title: "MITRA",
+    items: ["Supplier","Customer","Register Outlet"]
+  },
+  {
+    title: "KEUANGAN",
+    items: ["Cash Flow","Invoice Piutang","Laporan"]
+  },
+  {
+    title: "SISTEM",
+    items: ["Absensi Sales","Audit Log","User & Role","Profile"]
+  }
+];
+
 const ROLE_COLOR = { owner:"badge-red", admin:"badge-navy", sales:"badge-green" };
 
 export default function Navbar() {
@@ -64,6 +87,7 @@ export default function Navbar() {
   const [open, setOpen]   = useState(false);
   const [collapsed, setCollapsed] = useState({});
   const nav = useNavigate();
+  
 
   const doLogout = () => { logout(); nav("/login"); };
 
